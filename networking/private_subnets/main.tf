@@ -20,3 +20,34 @@ resource "aws_subnet" "private_instance_subnet" {
     Name = "private_instance_subnet"
   }
 }
+
+resource "aws_network_acl" "private_subnet_nacl" {
+  vpc_id = var.vpc_id
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 1
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 22
+    to_port    = 22
+  }
+  egress {
+    protocol   = "tcp"
+    rule_no    = 1
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 22
+    to_port    = 22
+  }
+}
+
+resource "aws_network_acl_association" "private_subnet_nacl_associations" {
+  count          = 3
+  network_acl_id = aws_network_acl.private_subnet_nacl.id
+  subnet_id      = aws_subnet.private_bastion_subnets[count.index].id
+}
+
+resource "aws_network_acl_association" "private_subnet_nacl_association" {
+  network_acl_id = aws_network_acl.private_subnet_nacl.id
+  subnet_id      = aws_subnet.private_instance_subnet.id
+}
