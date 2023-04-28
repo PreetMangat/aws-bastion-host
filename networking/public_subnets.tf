@@ -1,7 +1,7 @@
 resource "aws_subnet" "public_subnets" {
   count                   = 3
-  cidr_block              = cidrsubnet(var.vpc_cidr, 3, count.index)
-  vpc_id                  = var.vpc_id
+  cidr_block              = cidrsubnet(aws_vpc.vpc.cidr_block, 3, count.index)
+  vpc_id                  = aws_vpc.vpc.id
   availability_zone       = "ca-central-1${element(["a", "b", "d"], count.index)}"
   map_public_ip_on_launch = true
   tags = {
@@ -10,10 +10,10 @@ resource "aws_subnet" "public_subnets" {
 }
 
 resource "aws_route_table" "public_subnet_route_table" {
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.vpc.id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = var.igw_id
+    gateway_id = aws_internet_gateway.igw.id
   }
 }
 
@@ -24,7 +24,7 @@ resource "aws_route_table_association" "public_subnet_route_table_associations" 
 }
 
 resource "aws_network_acl" "public_subnet_nacl" {
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.vpc.id
   ingress {
     protocol   = "tcp"
     rule_no    = 1
