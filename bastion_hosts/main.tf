@@ -4,7 +4,7 @@ resource "aws_security_group" "sg" {
     protocol    = "tcp"
     from_port   = 22
     to_port     = 22
-    cidr_blocks = [var.vpc_cidr]
+    cidr_blocks = var.public_subnet_cidrs
   }
 }
 

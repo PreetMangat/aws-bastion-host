@@ -3,6 +3,11 @@ variable "private_bastion_subnet_ids" {
   type        = list(string)
 }
 
+variable "public_subnet_cidrs" {
+  description = "List of cidrs for each public subnet"
+  type        = list(string)
+}
+
 variable "nlb_target_group_arn" {
   description = "arn of the target group the load balancer uses"
   type        = string

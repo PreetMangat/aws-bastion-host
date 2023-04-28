@@ -25,21 +25,37 @@ resource "aws_route_table_association" "public_subnet_route_table_associations" 
 
 resource "aws_network_acl" "public_subnet_nacl" {
   vpc_id = aws_vpc.vpc.id
-  ingress {
+  ingress { # Inbound (request) ssh traffic from the public internet
     protocol   = "tcp"
-    rule_no    = 1
+    rule_no    = 100
     action     = "allow"
     cidr_block = "0.0.0.0/0"
     from_port  = 22
     to_port    = 22
   }
-  egress {
+  ingress { # Inbound (response) ssh traffic from the private bastion host subnets
     protocol   = "tcp"
-    rule_no    = 1
+    rule_no    = 200
     action     = "allow"
-    cidr_block = "0.0.0.0/0"
+    cidr_block = aws_vpc.vpc.cidr_block
+    from_port  = 1024
+    to_port    = 65535
+  }
+  egress { # Outbound ssh traffic to the private bastion host subnets
+    protocol   = "tcp"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = aws_vpc.vpc.cidr_block
     from_port  = 22
     to_port    = 22
+  }
+  egress { # Outbound ssh traffic to the public internet
+    protocol   = "tcp"
+    rule_no    = 200
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 1024
+    to_port    = 65535
   }
 }
 

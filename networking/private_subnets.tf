@@ -10,34 +10,23 @@ resource "aws_subnet" "private_bastion_subnets" {
   }
 }
 
-# Private subnet - for the ec2 instance that the bastion hosts allow access to
-resource "aws_subnet" "private_instance_subnet" {
-  cidr_block              = cidrsubnet(aws_vpc.vpc.cidr_block, 3, 6)
-  vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = "ca-central-1b"
-  map_public_ip_on_launch = false
-  tags = {
-    Name = "private_instance_subnet"
-  }
-}
-
 resource "aws_network_acl" "private_subnet_nacl" {
   vpc_id = aws_vpc.vpc.id
-  ingress {
+  ingress { # Inbound (request) ssh traffic from the public subnet
     protocol   = "tcp"
-    rule_no    = 1
+    rule_no    = 100
     action     = "allow"
     cidr_block = aws_vpc.vpc.cidr_block
     from_port  = 22
     to_port    = 22
   }
-  egress {
+  egress { # Outbound (response) ssh traffic from the private subnet
     protocol   = "tcp"
-    rule_no    = 1
+    rule_no    = 100
     action     = "allow"
     cidr_block = aws_vpc.vpc.cidr_block
-    from_port  = 22
-    to_port    = 22
+    from_port  = 1024
+    to_port    = 65535
   }
 }
 
@@ -45,9 +34,4 @@ resource "aws_network_acl_association" "private_subnet_nacl_associations" {
   count          = 3
   network_acl_id = aws_network_acl.private_subnet_nacl.id
   subnet_id      = aws_subnet.private_bastion_subnets[count.index].id
-}
-
-resource "aws_network_acl_association" "private_subnet_nacl_association" {
-  network_acl_id = aws_network_acl.private_subnet_nacl.id
-  subnet_id      = aws_subnet.private_instance_subnet.id
 }
